@@ -1,0 +1,90 @@
+................
+! Endpoint map !
+''''''''''''''''
+
+
+ACCOTUNT
+''''''''
+ POST /login
+    ** params (email/username, password)
+    >> requires no Authorization header
+
+ POST /register
+    ** params (username, email, password, confirm_password)
+    >> requires no Authorization header
+
+ GET /username/
+    >> redirect to expenses if user(web), empty response if json
+    >> retrieve user and expense list links if manager or admin
+
+
+EXPENSES
+''''''''
+ GET /username/expenses
+    ** filter and ordering params
+     - filter: date(from-to), time(from-to), amount(from-to)
+               and user(admin only)
+     - ordering: date and amount
+    >> get expense list
+    >> if username belongs to admin, return all expenses (or filtered)
+
+ DELETE/POST /username/expenses
+    >> bulk delete
+
+ POST /username/expenses
+    >> create new expense
+
+ GET /username/expenses/<uuid>
+    >> get expense detail
+    >> if admin, detail should also include user
+
+ PUT/PATCH /username/expenses/<uuid>
+    >> update expense
+    >> if admin, detail should also include user
+
+ DELETE /username/expenses/<uuid>
+    >> delete expense
+
+
+USERS
+'''''
+** ONLY AVAILABLE TO MANAGERS AND ADMINS.
+** MANAGERS CAN ONLY CRUD OTHER MANAGERS AND USERS, NOT ADMINS
+
+ GET /users
+    ** filter and ordering params
+     - filter: date(from-to) and type
+     - ordering: date and type
+    >> get user list
+
+ DELETE/POST /users
+    >> bulk delete
+
+ POST /users
+    ** params (username, email, password, confirm_password, type)
+    >> create new user
+    >> manager can create user and manager, admin can create user, manager
+       and admin
+
+ GET /users/username
+    >> get user detail
+
+ PUT/PATCH /users/username
+    ** params (username, email, password, confirm_password, type)
+    >> update user
+    >> manager can update user and manager, admin can update user, manager
+       and admin
+
+ DELETE /users/username
+    >> delete user
+
+
+REPORTS
+'''''''
+ GET /username/expenses/report
+    ** params (week)
+    >> get weekly report for the specified week, current week by default
+
+ GET /username/expenses/report/download
+    >> download report in pdf format
+

@@ -1,1 +1,2 @@
 *.pyc
+expense_track/db.sqlite3
