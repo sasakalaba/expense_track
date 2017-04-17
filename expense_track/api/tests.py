@@ -119,6 +119,7 @@ class AccountTest(BaseTestCase):
         form_data = {
             'username': 'foobar1',
             'password': 'foobar1',
+            'confirm_password': 'foobar1',
             'email': 'foo@bar1.com'
         }
         return_data = {
@@ -142,6 +143,19 @@ class AccountTest(BaseTestCase):
             'username': ['This field is required.'],
             'email': ['This field is required.'],
             'password': ['This field is required.']
+        }
+        self.assertEndpoint(
+            'account_register', 'post', form_data, return_data, status.HTTP_400_BAD_REQUEST)
+
+        # Mismatching passwords error.
+        form_data = {
+            'username': 'foobar2',
+            'password': 'foobar2',
+            'confirm_password': 'foobar1',
+            'email': 'foo@bar2.com'
+        }
+        return_data = {
+            'non_field_errors': ['Passwords must match.']
         }
         self.assertEndpoint(
             'account_register', 'post', form_data, return_data, status.HTTP_400_BAD_REQUEST)
