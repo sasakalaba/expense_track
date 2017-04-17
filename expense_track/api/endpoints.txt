@@ -82,9 +82,6 @@ USERS
 REPORTS
 '''''''
  GET /username/expenses/report
-    ** params (week)
+    ** params (week, download)
     >> get weekly report for the specified week, current week by default
-
- GET /username/expenses/report/download
-    >> download report in pdf format
-
+    >> if download=True, download current week in pdf format

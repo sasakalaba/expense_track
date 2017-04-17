@@ -38,7 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'expense_trackapp.apps.ExpenseTrackappConfig'
+    'rest_framework.authtoken',
+    'expense_trackapp.apps.ExpenseTrackappConfig',
+    'api.apps.ApiConfig',
 ]
 
 MIDDLEWARE = [
@@ -122,3 +124,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+
+
+# REST_FRAMEWORK setings
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+    ),
+}
