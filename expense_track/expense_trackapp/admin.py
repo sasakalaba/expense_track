@@ -1,6 +1,9 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 from django.contrib import admin
+from .models import Expense
 
-# Register your models here.
+
+class ExpenseAdmin(admin.ModelAdmin):
+    model = Expense
+    list_display = ('date', 'amount')
+
+admin.site.register(Expense, ExpenseAdmin)
