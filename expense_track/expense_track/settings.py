@@ -126,6 +126,14 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 
+# Authentication settings
+
+LOGIN_URL = 'login'
+
+LOGIN_REDIRECT_URL = 'index'
+
+LOGOUT_REDIRECT_URL = 'login'
+
 # REST_FRAMEWORK setings
 
 REST_FRAMEWORK = {
