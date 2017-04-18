@@ -1,6 +1,5 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers, validators
-from expense_trackapp import helpers
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -19,8 +18,8 @@ class UserSerializer(serializers.ModelSerializer):
     confirm_password = serializers.ReadOnlyField()
 
     def validate(self, attrs):
-        helpers.confirm_password(
-            self.initial_data.get('password'), self.initial_data.get('confirm_password'))
+        if self.initial_data.get('password') != self.initial_data.get('confirm_password'):
+            raise serializers.ValidationError('Passwords must match.')
         return attrs
 
     def create(self, validated_data):

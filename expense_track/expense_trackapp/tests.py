@@ -1,26 +1,8 @@
 from django import forms
 from django.test import TestCase, Client
-from .helpers import confirm_password
 from .forms import RegisterForm
-from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
-
-
-class HelperMethodsTest(TestCase):
-    def test_confirm_password(self):
-        """
-        confirm_password test.
-        """
-
-        # Raise ValidationError if passwords do not match.
-        with self.assertRaises(ValidationError) as validation_error:
-            confirm_password('foo', 'bar')
-        self.assertEqual(
-            validation_error.exception.messages[0], 'Passwords must match.')
-
-        # Correct match.
-        confirm_password('foobar', 'foobar')
 
 
 class FormsTest(TestCase):
