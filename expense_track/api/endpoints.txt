@@ -5,45 +5,17 @@
 
 ACCOTUNT
 ''''''''
- POST /login
-    ** params (email/username, password)
+ POST /api-auth
+    ** params (username, password)
     >> requires no Authorization header
 
- POST /register
+ POST /api-register
     ** params (username, email, password, confirm_password)
     >> requires no Authorization header
 
- GET /username/
-    >> redirect to expenses if user(web), empty response if json
+ GET /<username>/
+    >> redirect to /username/expenses if user(web), empty response(json)
     >> retrieve user and expense list links if manager or admin
-
-
-EXPENSES
-''''''''
- GET /username/expenses
-    ** filter and ordering params
-     - filter: date(from-to), time(from-to), amount(from-to)
-               and user(admin only)
-     - ordering: date and amount
-    >> get expense list
-    >> if username belongs to admin, return all expenses (or filtered)
-
- DELETE/POST /username/expenses
-    >> bulk delete
-
- POST /username/expenses
-    >> create new expense
-
- GET /username/expenses/<uuid>
-    >> get expense detail
-    >> if admin, detail should also include user
-
- PUT/PATCH /username/expenses/<uuid>
-    >> update expense
-    >> if admin, detail should also include user
-
- DELETE /username/expenses/<uuid>
-    >> delete expense
 
 
 USERS
@@ -53,7 +25,7 @@ USERS
 
  GET /users
     ** filter and ordering params
-     - filter: date(from-to) and type
+     - filter: date(from-to) and type(from-to)
      - ordering: date and type
     >> get user list
 
@@ -66,22 +38,50 @@ USERS
     >> manager can create user and manager, admin can create user, manager
        and admin
 
- GET /users/username
+ GET /users/<username>
     >> get user detail
 
- PUT/PATCH /users/username
+ PUT/PATCH /users/<username>
     ** params (username, email, password, confirm_password, type)
     >> update user
     >> manager can update user and manager, admin can update user, manager
        and admin
 
- DELETE /users/username
+ DELETE /users/<username>
     >> delete user
+
+
+EXPENSES
+''''''''
+ GET users/<username>/expenses
+    ** filter and ordering params
+     - filter: date(from-to), time(from-to), amount(from-to)
+               and user(admin only)
+     - ordering: date and amount
+    >> get expense list
+    >> if username belongs to admin, return all expenses (or filtered)
+
+ DELETE/POST users/<username>/expenses
+    >> bulk delete
+
+ POST users/<username>/expenses
+    >> create new expense
+
+ GET users/<username>/expenses/<uuid>
+    >> get expense detail
+    >> if admin, detail should also include user
+
+ PUT/PATCH users/<username>/expenses/<uuid>
+    >> update expense
+    >> if admin, detail should also include user
+
+ DELETE users/<username>/expenses/<uuid>
+    >> delete expense
 
 
 REPORTS
 '''''''
- GET /username/expenses/report
+ GET users/<username>/expenses/report
     ** params (week, download)
     >> get weekly report for the specified week, current week by default
     >> if download=True, download current week in pdf format
