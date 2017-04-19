@@ -11,6 +11,9 @@ class Expense(models.Model):
     class Meta:
         ordering = ['date', 'amount']
 
+    def __unicode__(self):
+        return ' '.join([str(self.date), str(self.amount)])
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
     date = models.DateField(default=get_current_time)
     time = models.TimeField(default=get_current_time)
