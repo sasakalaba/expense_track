@@ -10,7 +10,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>SB Admin 2 - Bootstrap Admin Theme</title>
+    <title>Expense tracker</title>
 
     <!-- Bootstrap Core CSS -->
     <link href="{% static "css/bootstrap.css" %}" rel="stylesheet">
@@ -56,6 +56,20 @@
 
     <!-- Custom Theme JavaScript -->
     <script src="{% static "js/sb-admin-2.js" %}"></script>
+
+    <!-- DataTables JavaScript -->
+    <script src="{% static "js/jquery.dataTables.min.js" %}"></script>
+    <script src="{% static "js/dataTables.bootstrap.min.js" %}"></script>
+    <script src="{% static "js/dataTables.responsive.js" %}"></script>
+
+    <!-- Table entries -->
+    <script>
+    $(document).ready(function() {
+        $('#dataTables-example').DataTable({
+            responsive: true
+        });
+    });
+    </script>
 </body>
 
 </html>
