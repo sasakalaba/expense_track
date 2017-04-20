@@ -41,7 +41,7 @@ USERS
  GET /users/<username>
     >> get user detail
 
- PUT/PATCH /users/<username>
+ PUT /users/<username>
     ** params (username, email, password, confirm_password, type)
     >> update user
     >> manager can update user and manager, admin can update user, manager
@@ -67,15 +67,15 @@ EXPENSES
  POST users/<username>/expenses
     >> create new expense
 
- GET users/<username>/expenses/<uuid>
+ GET users/<username>/expenses/<id>
     >> get expense detail
     >> if admin, detail should also include user
 
- PUT/PATCH users/<username>/expenses/<uuid>
+ PUT users/<username>/expenses/<id>
     >> update expense
     >> if admin, detail should also include user
 
- DELETE users/<username>/expenses/<uuid>
+ DELETE users/<username>/expenses/<id>
     >> delete expense
 
 
