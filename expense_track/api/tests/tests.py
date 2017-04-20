@@ -291,6 +291,17 @@ class ExpensesTest(BaseTestCase):
             manual_check=['pk', ]
         )
 
+        # Required fields.
+        form_data = {}
+        self.assertEndpoint(
+            'expense_list',
+            'post',
+            form_data,
+            {'amount': ['This field is required.']},
+            status.HTTP_400_BAD_REQUEST,
+            url_kwargs=self.user1_url_kwargs,
+        )
+
     def test_update(self):
         """
         Update expense test.
@@ -333,6 +344,17 @@ class ExpensesTest(BaseTestCase):
             self.expense2_return_data,
             status.HTTP_200_OK,
             url_kwargs=self.user2_url_kwargs,
+        )
+
+        # Required fields.
+        form_data = {}
+        self.assertEndpoint(
+            'expense_detail',
+            'put',
+            form_data,
+            {'amount': ['This field is required.']},
+            status.HTTP_400_BAD_REQUEST,
+            url_kwargs=self.user1_url_kwargs,
         )
 
     def test_delete(self):
