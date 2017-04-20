@@ -3,8 +3,7 @@ Expense track app.
 Install:
 
 ``` pip install --upgrade pip ```
-``` pip install django ```
-``` pip install djangorestframework ```
+``` pip install -r requirements.txt ```
 
 Setup:
 
