@@ -1,3 +1,4 @@
+from datetime import timedelta
 from django.core.urlresolvers import reverse
 from rest_framework import status
 from rest_framework.authtoken.models import Token
@@ -103,6 +104,14 @@ class ExpensesTest(BaseTestCase):
             'pk': self.expense2.pk
         }
 
+        # Create new expense for self.user.
+        self.expense3 = Expense.objects.create(
+            amount=float(333),
+            user=self.user,
+            date=self.now.date() - timedelta(days=1),
+            time=self.now.time()
+        )
+
         # Set return data.
         self.expense_return_data = {
             'amount': '666.00',
@@ -123,27 +132,20 @@ class ExpensesTest(BaseTestCase):
             'user': 'foobar2'
         }
 
-    def test_list(self):
-        """
-        List of expenses test.
-        """
-
-        # Create new expense for self.user.
-        self.expense3 = Expense.objects.create(
-            amount=float(333),
-            user=self.user,
-            date=self.now.date(),
-            time=self.now.time()
-        )
         self.expense3_return_data = {
             'amount': '333.00',
             'comment': '',
-            'date': str(self.now.date()),
+            'date': str(self.now.date() - timedelta(days=1)),
             'description': '',
             'pk': self.expense3.pk,
             'time': str(self.now.time()),
             'user': 'foobar'
         }
+
+    def test_list(self):
+        """
+        List of expenses test.
+        """
 
         form_data = {}
         return_data = [self.expense_return_data, self.expense3_return_data]
@@ -182,6 +184,148 @@ class ExpensesTest(BaseTestCase):
             return_data,
             status.HTTP_200_OK,
             url_kwargs=self.user1_url_kwargs,
+        )
+
+    def test_list_filter_date(self):
+        """
+        Filtered expense list test.
+        """
+
+        form_data = {}
+        return_data = [self.expense_return_data, self.expense3_return_data]
+
+        # Set url kwargs.
+        self.user1_url_kwargs.pop('pk')
+        self.user2_url_kwargs.pop('pk')
+
+        # Set query parameters.
+        query_params = {
+            'date_0': str(self.now.date() - timedelta(days=2)),
+            'date_1': str(self.now.date())
+        }
+
+        # Filter all todays and yesterdays dates.
+        self.assertEndpoint(
+            'expense_list',
+            'get',
+            form_data,
+            return_data,
+            status.HTTP_200_OK,
+            url_kwargs=self.user1_url_kwargs,
+            query_params=query_params
+        )
+
+        # Filter only yesterdays dates.
+        query_params = {
+            'date_0': str(self.now.date() - timedelta(days=2)),
+            'date_1': str(self.now.date() - timedelta(days=1))
+        }
+        return_data = [self.expense3_return_data, ]
+
+        self.assertEndpoint(
+            'expense_list',
+            'get',
+            form_data,
+            return_data,
+            status.HTTP_200_OK,
+            url_kwargs=self.user1_url_kwargs,
+            query_params=query_params
+        )
+
+    def test_list_filter_time(self):
+        """
+        Filtered expense list test.
+        """
+
+        form_data = {}
+        return_data = [self.expense_return_data, self.expense3_return_data]
+        new_time = (self.now - timedelta(hours=2)).time()
+        self.expense3.time = new_time
+        self.expense3.save()
+        self.expense3_return_data['time'] = str(new_time)
+
+        # Set url kwargs.
+        self.user1_url_kwargs.pop('pk')
+        self.user2_url_kwargs.pop('pk')
+
+        # Set query parameters.
+        query_params = {
+            'time_0': str((self.now - timedelta(hours=3)).time()),
+            'time_1': str(self.now.time())
+        }
+
+        # Filter all times.
+        self.assertEndpoint(
+            'expense_list',
+            'get',
+            form_data,
+            return_data,
+            status.HTTP_200_OK,
+            url_kwargs=self.user1_url_kwargs,
+            query_params=query_params
+        )
+
+        # Filter only time from an hour ago.
+        query_params = {
+            'time_0': str((self.now - timedelta(hours=1)).time()),
+            'time_1': str(self.now.time())
+        }
+        return_data = [self.expense_return_data, ]
+
+        self.assertEndpoint(
+            'expense_list',
+            'get',
+            form_data,
+            return_data,
+            status.HTTP_200_OK,
+            url_kwargs=self.user1_url_kwargs,
+            query_params=query_params
+        )
+
+    def test_list_filter_amount(self):
+        """
+        Filtered expense list test.
+        """
+
+        form_data = {}
+        return_data = [self.expense_return_data, self.expense3_return_data]
+
+        # Set url kwargs.
+        self.user1_url_kwargs.pop('pk')
+        self.user2_url_kwargs.pop('pk')
+
+        # Set query parameters.
+        query_params = {
+            'amount_0': '300.00',
+            'amount_1': '700.00'
+        }
+
+        # Filter all amounts.
+        self.assertEndpoint(
+            'expense_list',
+            'get',
+            form_data,
+            return_data,
+            status.HTTP_200_OK,
+            url_kwargs=self.user1_url_kwargs,
+            query_params=query_params
+        )
+
+        # Filter only amounts below 600.
+        query_params = {
+            'amount_0': '300.00',
+            'amount_1': '600.00'
+        }
+        return_data = [self.expense3_return_data, ]
+
+        self.assertEndpoint(
+            'expense_list',
+            'get',
+            form_data,
+            return_data,
+            status.HTTP_200_OK,
+            url_kwargs=self.user1_url_kwargs,
+            query_params=query_params
         )
 
     def test_detail(self):

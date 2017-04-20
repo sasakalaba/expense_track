@@ -56,7 +56,6 @@ EXPENSES
  GET users/<username>/expenses
     ** filter and ordering params
      - filter: date(from-to), time(from-to), amount(from-to)
-               and user(admin only)
      - ordering: date and amount
     >> get expense list
     >> if username belongs to admin, return all expenses (or filtered)

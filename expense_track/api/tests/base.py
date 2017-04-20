@@ -29,7 +29,8 @@ class BaseTestCase(TestCase):
 
     def assertEndpoint(
             self, url_name, method, form_data, expected_response_data,
-            expected_status_code, url_kwargs=None, manual_check=[], order=False):
+            expected_status_code, url_kwargs=None, manual_check=[],
+            order=False, query_params=None):
         """
         Custom assert for checking endpoint response values and HTTP
         status codes.
@@ -57,6 +58,13 @@ class BaseTestCase(TestCase):
             'patch': self.client.patch,
             'delete': self.client.delete
         }
+
+        # Convert query_params to url string format.
+        if query_params:
+            url_query_string = '&'.join(
+                ['{}={}'.format(k, v) for k, v in query_params.iteritems()])
+            url = '?'.join([url, url_query_string])
+
         if method in allowed_methods:
             response = allowed_methods[method](url, form_data)
         else:

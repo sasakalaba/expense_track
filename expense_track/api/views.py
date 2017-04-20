@@ -4,6 +4,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from expense_trackapp.models import Expense
 from .permissions import IsOwnerOrReadOnly
+from .filters import ExpenseFilter
 from .serializers import (
     UserSerializer,
     ExpenseSerializer
@@ -27,8 +28,10 @@ class ExpenseViewSet(viewsets.ModelViewSet):
     serializer_class = ExpenseSerializer
     permission_classes = [IsOwnerOrReadOnly, ]
     lookup_fields = ['username', 'pk']
+    filter_class = ExpenseFilter
 
     def get_queryset(self):
+
         if self.request.user.is_superuser:
             return Expense.objects.all()
         else:
