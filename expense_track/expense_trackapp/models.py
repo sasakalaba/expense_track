@@ -4,7 +4,11 @@ from django.conf import settings
 
 
 def get_current_time():
-    return timezone.localtime(timezone.now())
+    return timezone.localtime(timezone.now()).time()
+
+
+def get_current_date():
+    return timezone.localtime(timezone.now()).date()
 
 
 class Expense(models.Model):
@@ -15,8 +19,13 @@ class Expense(models.Model):
         return ' '.join([str(self.date), str(self.amount)])
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
-    date = models.DateField(default=get_current_time)
+    date = models.DateField(default=get_current_date)
     time = models.TimeField(default=get_current_time)
     description = models.CharField(max_length=1024, null=True, blank=True, default='')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     comment = models.CharField(max_length=1024, null=True, blank=True, default='')
+
+    def save(self, *args, **kwargs):
+        if self.user.is_staff:
+            return None
+        super(Expense, self).save(*args, **kwargs)
