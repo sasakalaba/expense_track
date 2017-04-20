@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers, validators
+from expense_trackapp.models import Expense
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -25,3 +26,14 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = User.objects.create_user(**validated_data)
         return user
+
+
+class ExpenseSerializer(serializers.ModelSerializer):
+    """
+    Expense serializer.
+    """
+    user = serializers.ReadOnlyField(source='user.username')
+
+    class Meta:
+        model = Expense
+        fields = ('user', 'pk', 'date', 'time', 'amount', 'description', 'comment')

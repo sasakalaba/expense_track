@@ -1,9 +1,15 @@
 import json
+from datetime import datetime
 from django.test import TestCase
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.authtoken.models import Token
+from rest_framework.test import APIClient
+from expense_trackapp.models import Expense
+from mock import MagicMock, call
+from .permissions import IsOwnerOrReadOnly
+from .views import ExpenseViewSet
 
 
 class BaseTestCase(TestCase):
@@ -83,6 +89,60 @@ class BaseTestCase(TestCase):
         return manual_data
 
 
+class PermissionsTest(BaseTestCase):
+    def setUp(self):
+        super(PermissionsTest, self).setUp()
+        self.user.is_superuser = True
+        self.user.save()
+        self.request = MagicMock(user=self.user)
+        self.view = MagicMock(kwargs={'username': 'foobar'})
+        self.is_owner_or_read_only = IsOwnerOrReadOnly()
+
+    def test_is_owner_or_read_only_has_permission(self):
+        """
+        has_permission test.
+        """
+
+        # Superuser check.
+        self.assertTrue(
+            self.is_owner_or_read_only.has_permission(self.request, self.view))
+
+        # Allowed user check.
+        self.user.is_superuser = False
+        self.user.save()
+        self.assertTrue(
+            self.is_owner_or_read_only.has_permission(self.request, self.view))
+
+        # Denied permission check.
+        self.view.kwargs['username'] = 'wrong_user'
+        self.assertFalse(
+            self.is_owner_or_read_only.has_permission(self.request, self.view))
+
+    def test_is_owner_or_read_only_has_object_permission(self):
+        """
+        has_object_permission test.
+        """
+
+        obj = MagicMock(user=self.user)
+
+        # Superuser check.
+        self.assertTrue(self.is_owner_or_read_only.has_object_permission(
+            self.request, self.view, obj))
+
+        # Allowed user check.
+        self.user.is_superuser = False
+        self.user.save()
+        self.assertTrue(self.is_owner_or_read_only.has_object_permission(
+            self.request, self.view, obj))
+
+        # Denied permission check.
+        obj.user = User.objects.create_user(
+            username='foobar2', email='foo@bar2.com', password='mypassword'
+        )
+        self.assertFalse(self.is_owner_or_read_only.has_object_permission(
+            self.request, self.view, obj))
+
+
 class AccountTest(BaseTestCase):
     def test_login(self):
         """
@@ -159,3 +219,377 @@ class AccountTest(BaseTestCase):
         }
         self.assertEndpoint(
             'account_register', 'post', form_data, return_data, status.HTTP_400_BAD_REQUEST)
+
+
+class ExpenseViewSetTest(BaseTestCase):
+    def setUp(self):
+        super(ExpenseViewSetTest, self).setUp()
+        self.user.is_superuser = True
+        self.user.save()
+        self.request = MagicMock(user=self.user)
+        self.expense_view = ExpenseViewSet(request=self.request)
+        self.user2 = User.objects.create_user(
+            username='foobar2',
+            email='foo@bar2.com',
+            password='mypassword'
+        )
+        self.serializer = MagicMock(initial_data={'user': self.user2})
+
+        # Set objects.
+        self.now = datetime.now()
+        self.expense = Expense.objects.create(
+            amount=float(666), user=self.user, date=self.now.date(), time=self.now.time())
+        self.expense2 = Expense.objects.create(
+            amount=float(999), user=self.user2, date=self.now.date(), time=self.now.time())
+
+    def test_get_queryset(self):
+        """
+        get_queryset test.
+        """
+
+        # Superuser check.
+        self.assertEqual(
+            list(self.expense_view.get_queryset()), [self.expense, self.expense2])
+
+        # Regular user check.
+        self.user.is_superuser = False
+        self.user.save()
+        self.assertEqual(
+            list(self.expense_view.get_queryset()), [self.expense, ])
+
+    def test_perform_create(self):
+        """
+        perform_create test.
+        """
+
+        # Superuser check.
+        self.expense_view.perform_create(serializer=self.serializer)
+        self.assertEqual(
+            self.serializer.method_calls[0], call.save(user=self.user2))
+
+        # No initial data.
+        self.serializer.initial_data = {}
+        self.expense_view.perform_create(serializer=self.serializer)
+        self.assertEqual(
+            self.serializer.method_calls[1], call.save(user=self.user))
+
+        # Staff user check.
+        self.user.is_superuser = False
+        self.user.is_staff = True
+        self.user.save()
+        self.assertIsNone(
+            self.expense_view.perform_create(serializer=self.serializer))
+
+        # Regular user check.
+        self.user.is_staff = False
+        self.user.save()
+        self.expense_view.perform_create(serializer=self.serializer)
+        self.assertEqual(
+            self.serializer.method_calls[2], call.save(user=self.user))
+
+
+class ExpensesTest(BaseTestCase):
+    def setUp(self):
+        super(ExpensesTest, self).setUp()
+        self.user2 = User.objects.create_user(
+            username='foobar2',
+            email='foo@bar2.com',
+            password='mypassword'
+        )
+
+        # Set authorization.
+        self.token = Token.objects.create(user=self.user)
+        self.client = APIClient()
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+
+        # Set objects.
+        self.now = datetime.now()
+        self.expense = Expense.objects.create(
+            amount=float(666), user=self.user, date=self.now.date(), time=self.now.time())
+        self.expense2 = Expense.objects.create(
+            amount=float(999), user=self.user2, date=self.now.date(), time=self.now.time())
+
+        # Set url kwargs.
+        self.user1_url_kwargs = {
+            'username': self.user.username,
+            'pk': self.expense.pk
+        }
+        self.user2_url_kwargs = {
+            'username': self.user2.username,
+            'pk': self.expense2.pk
+        }
+
+        # Set return data.
+        self.expense_return_data = {
+            'amount': '666.00',
+            'comment': '',
+            'date': str(self.now.date()),
+            'description': '',
+            'pk': self.expense.pk,
+            'time': str(self.now.time()),
+            'user': 'foobar'
+        }
+        self.expense2_return_data = {
+            'amount': '999.00',
+            'comment': '',
+            'date': str(self.now.date()),
+            'description': '',
+            'pk': self.expense2.pk,
+            'time': str(self.now.time()),
+            'user': 'foobar2'
+        }
+
+    def test_list(self):
+        """
+        List of expenses test.
+        """
+
+        # Create new expense for self.user.
+        self.expense3 = Expense.objects.create(
+            amount=float(333),
+            user=self.user,
+            date=self.now.date(),
+            time=self.now.time()
+        )
+        self.expense3_return_data = {
+            'amount': '333.00',
+            'comment': '',
+            'date': str(self.now.date()),
+            'description': '',
+            'pk': self.expense3.pk,
+            'time': str(self.now.time()),
+            'user': 'foobar'
+        }
+
+        form_data = {}
+        return_data = [self.expense_return_data, self.expense3_return_data]
+
+        # Set url kwargs.
+        self.user1_url_kwargs.pop('pk')
+        self.user2_url_kwargs.pop('pk')
+
+        # User can GET only its own records.
+        self.assertEndpoint(
+            'expense_list',
+            'get',
+            form_data,
+            return_data,
+            status.HTTP_200_OK,
+            url_kwargs=self.user1_url_kwargs,
+        )
+        self.assertEndpoint(
+            'expense_list',
+            'get',
+            form_data,
+            {'detail': 'You do not have permission to perform this action.'},
+            status.HTTP_403_FORBIDDEN,
+            url_kwargs=self.user2_url_kwargs
+        )
+
+        # Admin can GET everything.
+        self.user.is_superuser = True
+        self.user.save()
+        return_data.append(self.expense2_return_data)
+
+        self.assertEndpoint(
+            'expense_list',
+            'get',
+            form_data,
+            return_data,
+            status.HTTP_200_OK,
+            url_kwargs=self.user1_url_kwargs,
+        )
+
+    def test_detail(self):
+        """
+        Single expense test.
+        """
+
+        form_data = {}
+
+        # User can GET only its own records.
+        self.assertEndpoint(
+            'expense_detail',
+            'get',
+            form_data,
+            self.expense_return_data,
+            status.HTTP_200_OK,
+            url_kwargs=self.user1_url_kwargs,
+        )
+        self.assertEndpoint(
+            'expense_detail',
+            'get',
+            form_data,
+            {'detail': 'You do not have permission to perform this action.'},
+            status.HTTP_403_FORBIDDEN,
+            url_kwargs=self.user2_url_kwargs
+        )
+
+        # Admin can GET everything.
+        self.user.is_superuser = True
+        self.user.save()
+
+        self.assertEndpoint(
+            'expense_detail',
+            'get',
+            form_data,
+            self.expense2_return_data,
+            status.HTTP_200_OK,
+            url_kwargs=self.user2_url_kwargs,
+        )
+
+    def test_create(self):
+        """
+        Create expense test.
+        """
+        form_data = {
+            'amount': float(222),
+            'date': str(self.now.date()),
+            'time': str(self.now.time())
+        }
+        self.expense4_return_data = {
+            'amount': '222.00',
+            'comment': '',
+            'date': str(self.now.date()),
+            'description': '',
+            'time': str(self.now.time()),
+            'user': 'foobar'
+        }
+        # Set url kwargs.
+        self.user1_url_kwargs.pop('pk')
+        self.user2_url_kwargs.pop('pk')
+
+        # User can create only its own records.
+        self.assertEndpoint(
+            'expense_list',
+            'post',
+            form_data,
+            self.expense4_return_data,
+            status.HTTP_201_CREATED,
+            url_kwargs=self.user1_url_kwargs,
+            manual_check=['pk', ]
+        )
+        form_data['value'] = float(999)
+        self.assertEndpoint(
+            'expense_list',
+            'post',
+            form_data,
+            {'detail': 'You do not have permission to perform this action.'},
+            status.HTTP_403_FORBIDDEN,
+            url_kwargs=self.user2_url_kwargs
+        )
+
+        # Admin can create a record for any user.
+        self.user.is_superuser = True
+        self.user.save()
+
+        # Non specified user will be the current user.
+        self.assertEndpoint(
+            'expense_list',
+            'post',
+            form_data,
+            self.expense4_return_data,
+            status.HTTP_201_CREATED,
+            url_kwargs=self.user1_url_kwargs,
+            manual_check=['pk', ]
+        )
+
+        # Specified user.
+        form_data['user'] = 'foobar2'
+        self.expense4_return_data['user'] = 'foobar2'
+        self.assertEndpoint(
+            'expense_list',
+            'post',
+            form_data,
+            self.expense4_return_data,
+            status.HTTP_201_CREATED,
+            url_kwargs=self.user1_url_kwargs,
+            manual_check=['pk', ]
+        )
+
+    def test_update(self):
+        """
+        Update expense test.
+        """
+        form_data = {
+            'amount': float(777)
+        }
+        self.expense_return_data['amount'] = '777.00'
+
+        # User can only update its own records.
+        self.assertEndpoint(
+            'expense_detail',
+            'put',
+            form_data,
+            self.expense_return_data,
+            status.HTTP_200_OK,
+            url_kwargs=self.user1_url_kwargs,
+        )
+        self.assertEndpoint(
+            'expense_detail',
+            'put',
+            form_data,
+            {'detail': 'You do not have permission to perform this action.'},
+            status.HTTP_403_FORBIDDEN,
+            url_kwargs=self.user2_url_kwargs
+        )
+
+        # Admin can create a record for any user.
+        self.user.is_superuser = True
+        self.user.save()
+
+        form_data = {
+            'amount': float(888)
+        }
+        self.expense2_return_data['amount'] = '888.00'
+        self.assertEndpoint(
+            'expense_detail',
+            'put',
+            form_data,
+            self.expense2_return_data,
+            status.HTTP_200_OK,
+            url_kwargs=self.user2_url_kwargs,
+        )
+
+    def test_delete(self):
+        """
+        Delete expense test.
+        """
+
+        form_data = {}
+        # User can only delete its own records.
+        self.assertEndpoint(
+            'expense_detail',
+            'delete',
+            form_data,
+            None,
+            status.HTTP_204_NO_CONTENT,
+            url_kwargs=self.user1_url_kwargs,
+        )
+        self.assertEndpoint(
+            'expense_detail',
+            'delete',
+            form_data,
+            {'detail': 'You do not have permission to perform this action.'},
+            status.HTTP_403_FORBIDDEN,
+            url_kwargs=self.user2_url_kwargs
+        )
+
+        # Admin can delete a record for any user.
+        self.user.is_superuser = True
+        self.user.save()
+
+        self.assertEndpoint(
+            'expense_detail',
+            'delete',
+            form_data,
+            None,
+            status.HTTP_204_NO_CONTENT,
+            url_kwargs=self.user2_url_kwargs,
+        )
+
+    def test_bulk_delete(self):
+        """
+        Expense bulk delete test.
+        """
+        pass

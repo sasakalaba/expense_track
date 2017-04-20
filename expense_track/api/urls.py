@@ -2,7 +2,7 @@ from rest_framework.urlpatterns import format_suffix_patterns
 from django.conf.urls import url
 from .views import (
     AccountViewSet,
-    # ExpenseViewSet,
+    ExpenseViewSet,
     # UserViewSet,
     # ReportViewSet,
     not_found_404
@@ -12,10 +12,6 @@ from .views import (
 """
 Account views.
 """
-# account_login = AccountViewSet.as_view({
-#     'post': 'login'
-# })
-
 account_register = AccountViewSet.as_view({
     'post': 'create'
 })
@@ -24,17 +20,17 @@ account_register = AccountViewSet.as_view({
 """
 Expense views.
 """
-# expense_list = ExpenseViewSet.as_view({
-#     'get': 'list',
-#     'post': 'create'
-#     # 'delete': 'destroy'
-# })
-#
-# expense_detail = ExpenseViewSet.as_view({
-#     'get': 'retrieve',
-#     'put': 'update',
-#     'delete': 'destroy'
-# })
+expense_list = ExpenseViewSet.as_view({
+    'get': 'list',
+    'post': 'create'
+    # 'delete': 'destroy'
+})
+
+expense_detail = ExpenseViewSet.as_view({
+    'get': 'retrieve',
+    'put': 'update',
+    'delete': 'destroy'
+})
 
 
 """
@@ -62,5 +58,7 @@ Report views.
 
 
 urlpatterns = format_suffix_patterns([
-    url(r'^.*$', not_found_404, name='not_found_404'),
+    url(r'^users/(?P<username>[A-Za-z0-9-]+)/expenses/$', expense_list, name='expense_list'),
+    url(r'^users/(?P<username>[A-Za-z0-9-]+)/expenses/(?P<pk>\d+)$', expense_detail, name='expense_detail'),
+    url(r'^.*$', not_found_404, name='not_found_404')
 ])
