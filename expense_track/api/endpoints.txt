@@ -24,9 +24,8 @@ USERS
 ** MANAGERS CAN ONLY CRUD OTHER MANAGERS AND USERS, NOT ADMINS
 
  GET /users
-    ** filter and ordering params
+    ** filter params
      - filter: date(from-to) and type(from-to)
-     - ordering: date and type
     >> get user list
 
  DELETE/POST /users
@@ -54,9 +53,8 @@ USERS
 EXPENSES
 ''''''''
  GET users/<username>/expenses
-    ** filter and ordering params
+    ** filter params
      - filter: date(from-to), time(from-to), amount(from-to)
-     - ordering: date and amount
     >> get expense list
     >> if username belongs to admin, return all expenses (or filtered)
 
