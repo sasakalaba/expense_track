@@ -9,7 +9,7 @@ class UserSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = User
-        fields = ('username', 'password', 'email', 'confirm_password')
+        fields = ('username', 'password', 'email', 'confirm_password', 'user_type')
         extra_kwargs = {'password': {'write_only': True}}
 
     email = serializers.EmailField(
@@ -17,10 +17,18 @@ class UserSerializer(serializers.ModelSerializer):
         validators=[validators.UniqueValidator(queryset=User.objects.all())]
     )
     confirm_password = serializers.ReadOnlyField()
+    user_type = serializers.ReadOnlyField()
 
     def validate(self, attrs):
         if self.initial_data.get('password') != self.initial_data.get('confirm_password'):
             raise serializers.ValidationError('Passwords must match.')
+
+        user_type = self.initial_data.get('user_type')
+        if user_type:
+            if user_type not in ['is_staff', 'is_superuser']:
+                raise serializers.ValidationError('Not valid user type.')
+            else:
+                attrs[user_type] = True
         return attrs
 
     def create(self, validated_data):

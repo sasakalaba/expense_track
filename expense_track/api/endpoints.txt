@@ -32,7 +32,7 @@ USERS
     >> bulk delete
 
  POST /users
-    ** params (username, email, password, confirm_password, type)
+    ** params (username, email, password, confirm_password, user_type)
     >> create new user
     >> manager can create user and manager, admin can create user, manager
        and admin
@@ -40,8 +40,8 @@ USERS
  GET /users/<username>
     >> get user detail
 
- PUT /users/<username>
-    ** params (username, email, password, confirm_password, type)
+ PATCH /users/<username>
+    ** params (username, email, password, user_type)
     >> update user
     >> manager can update user and manager, admin can update user, manager
        and admin

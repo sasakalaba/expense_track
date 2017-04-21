@@ -1,7 +1,9 @@
 from .base import BaseTestCase
 from ..permissions import IsOwnerOrAdmin, IsManagerOrAdmin
 from ..views import ExpenseViewSet
+from ..serializers import UserSerializer
 from django.contrib.auth.models import User
+from rest_framework import serializers
 from mock import MagicMock, call
 
 
@@ -173,3 +175,44 @@ class ExpenseViewSetTest(BaseTestCase):
         self.expense_view.perform_create(serializer=self.serializer)
         self.assertEqual(
             self.serializer.method_calls[2], call.save(user=self.user))
+
+
+class UserSerializerTest(BaseTestCase):
+    def setUp(self):
+        super(UserSerializerTest, self).setUp()
+        self.serializer = UserSerializer()
+
+    def test_validate(self):
+        """
+        validate test.
+        """
+
+        # Passwords check.
+        self.serializer.initial_data = {
+            'password': 'mypassword',
+            'confirm_password': 'mypassword1'
+        }
+
+        with self.assertRaises(serializers.ValidationError) as validation_error:
+            self.serializer.validate({})
+        self.assertEqual(
+            validation_error.exception.detail[0], 'Passwords must match.')
+
+        self.serializer.initial_data['confirm_password'] = 'mypassword'
+        self.serializer.validate({})
+
+        # User types check.
+        self.serializer.initial_data = {
+            'user_type': 'foobar'
+        }
+
+        with self.assertRaises(serializers.ValidationError) as validation_error:
+            self.serializer.validate({})
+        self.assertEqual(
+            validation_error.exception.detail[0], 'Not valid user type.')
+
+        self.serializer.initial_data['user_type'] = 'is_staff'
+        self.serializer.validate({})
+
+        self.serializer.initial_data['user_type'] = 'is_superuser'
+        self.serializer.validate({})
