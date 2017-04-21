@@ -4,7 +4,6 @@ from .views import (
     AccountViewSet,
     ExpenseViewSet,
     UserViewSet,
-    # ReportViewSet,
     not_found_404
 )
 
@@ -23,7 +22,6 @@ Expense views.
 expense_list = ExpenseViewSet.as_view({
     'get': 'list',
     'post': 'create'
-    # 'delete': 'destroy'
 })
 
 expense_detail = ExpenseViewSet.as_view({
@@ -34,12 +32,19 @@ expense_detail = ExpenseViewSet.as_view({
 
 
 """
+Report views.
+"""
+report_detail = ExpenseViewSet.as_view({
+    'get': 'report'
+})
+
+
+"""
 User views.
 """
 user_list = UserViewSet.as_view({
     'get': 'list',
     'post': 'create'
-    # 'delete': 'destroy'
 })
 
 user_detail = UserViewSet.as_view({
@@ -49,18 +54,11 @@ user_detail = UserViewSet.as_view({
 })
 
 
-"""
-Report views.
-"""
-# report_detail = ReportViewSet.as_view({
-#     'get': 'retrieve'
-# })
-
-
 urlpatterns = format_suffix_patterns([
     url(r'^users/$', user_list, name='user_list'),
     url(r'^users/(?P<username>[A-Za-z0-9-]+)/$', user_detail, name='user_detail'),
     url(r'^users/(?P<username>[A-Za-z0-9-]+)/expenses/$', expense_list, name='expense_list'),
+    url(r'^users/(?P<username>[A-Za-z0-9-]+)/expenses/report/(?P<week>\d+)$', report_detail, name='report_detail'),
     url(r'^users/(?P<username>[A-Za-z0-9-]+)/expenses/(?P<pk>\d+)$', expense_detail, name='expense_detail'),
     url(r'^.*$', not_found_404, name='not_found_404')
 ])
