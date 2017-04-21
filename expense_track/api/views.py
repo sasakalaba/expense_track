@@ -1,5 +1,7 @@
+import json
 from datetime import datetime
 from django.contrib.auth.models import User
+from rest_framework.authtoken.models import Token
 from django.db.models import Sum, Avg
 from rest_framework import status, viewsets, permissions
 from rest_framework.decorators import api_view
@@ -79,3 +81,12 @@ class UserViewSet(viewsets.ModelViewSet):
         username = self.kwargs.get('username')
         if username:
             return User.objects.get(username=username)
+
+    def me(self, request, **kwargs):
+        try:
+            token = Token.objects.get(user=request.user)
+        except Token.DoesNotExist as error:
+            return Response(str(error))
+
+        return Response(
+            json.dumps({'token': token.key, 'user': token.user.username}))

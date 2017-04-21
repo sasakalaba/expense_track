@@ -53,9 +53,14 @@ user_detail = UserViewSet.as_view({
     'delete': 'destroy'
 })
 
+user_me = UserViewSet.as_view({
+    'get': 'me'
+})
+
 
 urlpatterns = format_suffix_patterns([
     url(r'^users/$', user_list, name='user_list'),
+    url(r'^users/me$', user_me, name='user_me'),
     url(r'^users/(?P<username>[A-Za-z0-9-]+)/$', user_detail, name='user_detail'),
     url(r'^users/(?P<username>[A-Za-z0-9-]+)/expenses/$', expense_list, name='expense_list'),
     url(r'^users/(?P<username>[A-Za-z0-9-]+)/expenses/report/(?P<week>\d+)$', report_detail, name='report_detail'),

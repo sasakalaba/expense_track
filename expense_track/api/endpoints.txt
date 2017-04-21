@@ -26,6 +26,9 @@ USERS
  GET /users
     >> get user list
 
+ GET /users/me
+    >> get current user username and token
+
  POST /users
     ** params (username, email, password, confirm_password, user_type)
     >> create new user
