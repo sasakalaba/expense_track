@@ -1,6 +1,6 @@
 from .base import BaseTestCase
 from ..permissions import IsOwnerOrAdmin, IsManagerOrAdmin
-from ..views import ExpenseViewSet
+from ..views import ExpenseViewSet, UserViewSet
 from ..serializers import UserSerializer
 from django.contrib.auth.models import User
 from rest_framework import serializers
@@ -175,6 +175,48 @@ class ExpenseViewSetTest(BaseTestCase):
         self.expense_view.perform_create(serializer=self.serializer)
         self.assertEqual(
             self.serializer.method_calls[2], call.save(user=self.user))
+
+
+class UserViewSetTest(BaseTestCase):
+    def setUp(self):
+        super(UserViewSetTest, self).setUp()
+        self.user.is_superuser = True
+        self.user.save()
+        self.request = MagicMock(user=self.user)
+        self.user_view = UserViewSet(request=self.request)
+        self.serializer = MagicMock(initial_data={'user': self.user2})
+
+    def test_get_queryset(self):
+        """
+        get_queryset test.
+        """
+
+        # Superuser check.
+        self.assertEqual(
+            list(self.user_view.get_queryset()), [self.user, self.user2])
+
+        # Regular user check.
+        self.user.is_superuser = False
+        self.user.save()
+        self.assertIsNone(self.user_view.get_queryset())
+
+        # Manager check.
+        self.user.is_staff = True
+        self.user.save()
+        self.assertEqual(
+            list(self.user_view.get_queryset()), [self.user, self.user2])
+
+    def test_get_object(self):
+        """
+        get_object test.
+        """
+
+        # Retrieve by username in url kwargs.
+        self.user_view.kwargs = {'username': self.user.username}
+        self.assertEqual(self.user_view.get_object(), self.user)
+
+        self.user_view.kwargs = {'username': self.user2.username}
+        self.assertEqual(self.user_view.get_object(), self.user2)
 
 
 class UserSerializerTest(BaseTestCase):

@@ -3,7 +3,7 @@ from rest_framework import status, viewsets, permissions
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from expense_trackapp.models import Expense
-from .permissions import IsOwnerOrAdmin
+from .permissions import IsOwnerOrAdmin, IsManagerOrAdmin
 from .filters import ExpenseFilter
 from .serializers import (
     UserSerializer,
@@ -47,3 +47,18 @@ class ExpenseViewSet(viewsets.ModelViewSet):
             return None
 
         serializer.save(user=user)
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    serializer_class = UserSerializer
+    permission_classes = [IsManagerOrAdmin, ]
+    lookup_field = 'username'
+
+    def get_queryset(self):
+        if self.request.user.is_superuser or self.request.user.is_staff:
+            return User.objects.all()
+
+    def get_object(self):
+        username = self.kwargs.get('username')
+        if username:
+            return User.objects.get(username=username)

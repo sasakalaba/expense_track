@@ -24,8 +24,6 @@ USERS
 ** MANAGERS CAN ONLY CRUD OTHER MANAGERS AND USERS, NOT ADMINS
 
  GET /users
-    ** filter params
-     - date from-to: date_0,  date_1
     >> get user list
 
  DELETE/POST /users

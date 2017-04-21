@@ -1,5 +1,6 @@
 from datetime import timedelta
 from django.core.urlresolvers import reverse
+from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
@@ -507,6 +508,7 @@ class ExpensesTest(BaseTestCase):
         """
 
         form_data = {}
+
         # User can only delete its own records.
         self.assertEndpoint(
             'expense_detail',
@@ -543,3 +545,268 @@ class ExpensesTest(BaseTestCase):
         Expense bulk delete test.
         """
         pass
+
+
+class UsersTest(BaseTestCase):
+    def setUp(self):
+        super(UsersTest, self).setUp()
+
+        # Set authorization.
+        self.token = Token.objects.create(user=self.user)
+        self.client = APIClient()
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+
+        # Set url kwargs.
+        self.user1_url_kwargs = {
+            'username': self.user.username
+        }
+        self.user2_url_kwargs = {
+            'username': self.user2.username
+        }
+
+        # Set return data.
+        self.user_return_data = {
+            'username': 'foobar',
+            'email': 'foo@bar.com'
+        }
+        self.user2_return_data = {
+            'username': 'foobar2',
+            'email': 'foo@bar2.com'
+        }
+
+    def test_list(self):
+        """
+        List of users test.
+        """
+
+        form_data = {}
+        return_data = [self.user_return_data, self.user2_return_data]
+
+        # User will get an empty user list.
+        self.assertEndpoint(
+            'user_list',
+            'get',
+            form_data,
+            {'detail': 'You do not have permission to perform this action.'},
+            status.HTTP_403_FORBIDDEN,
+        )
+
+        # Admin can GET a full user list.
+        self.user.is_superuser = True
+        self.user.save()
+
+        self.assertEndpoint(
+            'user_list',
+            'get',
+            form_data,
+            return_data,
+            status.HTTP_200_OK,
+        )
+
+        # Manager can GET a full user list.
+        self.user.is_staff = True
+        self.user.is_superuser = False
+        self.user.save()
+
+        self.assertEndpoint(
+            'user_list',
+            'get',
+            form_data,
+            return_data,
+            status.HTTP_200_OK,
+        )
+
+    def test_detail(self):
+        """
+        Single user test.
+        """
+
+        form_data = {}
+
+        # User cannot get its own details.
+        self.assertEndpoint(
+            'user_detail',
+            'get',
+            form_data,
+            {'detail': 'You do not have permission to perform this action.'},
+            status.HTTP_403_FORBIDDEN,
+            url_kwargs=self.user1_url_kwargs,
+        )
+
+        # Admin can GET any user.
+        self.user.is_superuser = True
+        self.user.save()
+
+        self.assertEndpoint(
+            'user_detail',
+            'get',
+            form_data,
+            self.user2_return_data,
+            status.HTTP_200_OK,
+            url_kwargs=self.user2_url_kwargs,
+        )
+
+        # Manager can GET any user.
+        self.user.is_staff = True
+        self.user.is_superuser = False
+        self.user.save()
+
+        self.assertEndpoint(
+            'user_detail',
+            'get',
+            form_data,
+            self.user2_return_data,
+            status.HTTP_200_OK,
+            url_kwargs=self.user2_url_kwargs,
+        )
+
+    def test_create(self):
+        """
+        Create user test.
+        """
+
+        form_data = {
+            'username': 'foobar3',
+            'email': 'foo@bar3.com',
+            'password': 'mypassword',
+            'confirm_password': 'mypassword'
+        }
+        self.user3_return_data = {
+            'username': 'foobar3',
+            'email': 'foo@bar3.com',
+        }
+
+        # User cannot create other users.
+        self.assertEndpoint(
+            'user_list',
+            'post',
+            form_data,
+            {'detail': 'You do not have permission to perform this action.'},
+            status.HTTP_403_FORBIDDEN,
+        )
+
+        # Admin can create users.
+        self.user.is_superuser = True
+        self.user.save()
+
+        self.assertEndpoint(
+            'user_list',
+            'post',
+            form_data,
+            self.user3_return_data,
+            status.HTTP_201_CREATED,
+        )
+
+        # Manager can create users.
+        self.user.is_superuser = False
+        self.user.is_staff = True
+        self.user.save()
+
+        User.objects.get(username=form_data['username']).delete()
+
+        self.assertEndpoint(
+            'user_list',
+            'post',
+            form_data,
+            self.user3_return_data,
+            status.HTTP_201_CREATED,
+        )
+
+    def test_update(self):
+        """
+        Update user test.
+        """
+
+        form_data = {
+            'email': 'brandnew@email.com',
+            'user_type': 'is_staff'
+        }
+        self.user2_return_data['email'] = 'brandnew@email.com'
+
+        # User cannot update users.
+        self.assertEndpoint(
+            'user_detail',
+            'patch',
+            form_data,
+            {'detail': 'You do not have permission to perform this action.'},
+            status.HTTP_403_FORBIDDEN,
+            url_kwargs=self.user1_url_kwargs
+        )
+
+        # Admin can update users.
+        self.user.is_superuser = True
+        self.user.save()
+        self.assertEndpoint(
+            'user_detail',
+            'patch',
+            form_data,
+            self.user2_return_data,
+            status.HTTP_200_OK,
+            url_kwargs=self.user2_url_kwargs
+        )
+
+        self.user2 = User.objects.get(id=self.user2.id)
+        self.assertTrue(self.user2.is_staff)
+
+        # Manager can update users.
+        self.user.is_superuser = False
+        self.user.is_staff = True
+        self.user.save()
+        form_data['user_type'] = 'is_superuser'
+
+        self.assertEndpoint(
+            'user_detail',
+            'patch',
+            form_data,
+            self.user2_return_data,
+            status.HTTP_200_OK,
+            url_kwargs=self.user2_url_kwargs
+        )
+
+        self.user2 = User.objects.get(id=self.user2.id)
+        self.assertTrue(self.user2.is_superuser)
+
+    def test_delete(self):
+        """
+        Delete user test.
+        """
+
+        form_data = {}
+
+        # User cannot delete itself.
+        self.assertEndpoint(
+            'user_detail',
+            'delete',
+            form_data,
+            {'detail': 'You do not have permission to perform this action.'},
+            status.HTTP_403_FORBIDDEN,
+            url_kwargs=self.user1_url_kwargs
+        )
+
+        # Admin can delete users.
+        self.user.is_superuser = True
+        self.user.save()
+        self.assertEndpoint(
+            'user_detail',
+            'delete',
+            form_data,
+            None,
+            status.HTTP_204_NO_CONTENT,
+            url_kwargs=self.user2_url_kwargs
+        )
+
+        self.user2 = User.objects.create_user(
+            username='foobar2',
+            email='foo@bar2.com',
+            password='mypassword'
+        )
+
+        # Manager can delete users.
+        self.assertEndpoint(
+            'user_detail',
+            'delete',
+            form_data,
+            None,
+            status.HTTP_204_NO_CONTENT,
+            url_kwargs=self.user2_url_kwargs
+        )
