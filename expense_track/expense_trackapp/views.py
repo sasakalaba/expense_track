@@ -2,11 +2,13 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from .forms import RegisterForm
 from django.contrib.auth.models import User
+from rest_framework.authtoken.models import Token
 
 
 @login_required
 def index(request):
-    context = {'user': request.user}
+    token = Token.objects.get_or_create(user=request.user)
+    context = {'user': token.user, 'token': token}
     return render(request, 'index.html', context)
 
 
