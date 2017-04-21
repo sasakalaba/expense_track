@@ -31,7 +31,6 @@ class ExpenseViewSet(viewsets.ModelViewSet):
     filter_class = ExpenseFilter
 
     def get_queryset(self):
-
         if self.request.user.is_superuser:
             return Expense.objects.all()
         else:
