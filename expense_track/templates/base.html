@@ -41,35 +41,25 @@
     {% endblock %}
 
     <!-- jQuery -->
-    <script src="{% static "js/jquery.js" %}"></script>
+    <script src="{% static 'js/jquery.js' %}"></script>
+
+    <!-- Cookies -->
+    <script src="{% static 'js/jscookie.js' %}"></script>
 
     <!-- Bootstrap Core JavaScript -->
-    <script src="{% static "js/bootstrap.js" %}"></script>
+    <script src="{% static 'js/bootstrap.js' %}"></script>
 
     <!-- Metis Menu Plugin JavaScript -->
-    <script src="{% static "js/metisMenu.js" %}"></script>
-
-    <!-- Morris Charts JavaScript -->
-    <script src="{% static "js/raphael.js" %}"></script>
-    <script src="{% static "js/morris.js" %}"></script>
-    <script src="{% static "js/morris-data.js" %}"></script>
+    <script src="{% static 'js/metisMenu.js' %}"></script>
 
     <!-- Custom Theme JavaScript -->
-    <script src="{% static "js/sb-admin-2.js" %}"></script>
+    <script src="{% static 'js/sb-admin-2.js' %}"></script>
 
     <!-- DataTables JavaScript -->
-    <script src="{% static "js/jquery.dataTables.min.js" %}"></script>
-    <script src="{% static "js/dataTables.bootstrap.min.js" %}"></script>
-    <script src="{% static "js/dataTables.responsive.js" %}"></script>
-
-    <!-- Table entries -->
-    <script>
-    $(document).ready(function() {
-        $('#dataTables-example').DataTable({
-            responsive: true
-        });
-    });
-    </script>
+    <script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'js/dataTables.bootstrap.min.js' %}"></script>
+    <script src="{% static 'js/dataTables.responsive.js' %}"></script>
+    <script src="{% static 'js/expenses.js' %}"></script>
 </body>
 
 </html>
