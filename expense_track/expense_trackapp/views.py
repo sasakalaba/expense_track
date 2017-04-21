@@ -7,8 +7,8 @@ from rest_framework.authtoken.models import Token
 
 @login_required
 def index(request):
-    token = Token.objects.get_or_create(user=request.user)
-    context = {'user': token.user, 'token': token}
+    token = Token.objects.get_or_create(user=request.user)[0]
+    context = {'user': token.user, 'token': token.key}
     return render(request, 'index.html', context)
 
 
