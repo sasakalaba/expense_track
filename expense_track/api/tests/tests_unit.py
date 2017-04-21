@@ -75,11 +75,11 @@ class PermissionsTest(BaseTestCase):
         self.assertTrue(
             self.is_manager_or_admin.has_permission(self.request, self.view))
 
-        # Allowed user check.
+        # User denied check.
         self.user.is_superuser = False
         self.user.is_staff = False
         self.user.save()
-        self.assertTrue(
+        self.assertFalse(
             self.is_manager_or_admin.has_permission(self.request, self.view))
 
         # Denied permission check.
@@ -105,11 +105,11 @@ class PermissionsTest(BaseTestCase):
         self.assertTrue(self.is_manager_or_admin.has_object_permission(
             self.request, self.view, obj))
 
-        # Allowed user check.
+        # User denied check.
         self.user.is_superuser = False
         self.user.is_staff = False
         self.user.save()
-        self.assertTrue(self.is_manager_or_admin.has_object_permission(
+        self.assertFalse(self.is_manager_or_admin.has_object_permission(
             self.request, self.view, obj))
 
         # Denied permission check.
