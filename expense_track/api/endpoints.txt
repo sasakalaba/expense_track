@@ -25,7 +25,7 @@ USERS
 
  GET /users
     ** filter params
-     - filter: date(from-to) and type(from-to)
+     - date from-to: date_0,  date_1
     >> get user list
 
  DELETE/POST /users
@@ -54,9 +54,11 @@ EXPENSES
 ''''''''
  GET users/<username>/expenses
     ** filter params
-     - filter: date(from-to), time(from-to), amount(from-to)
+     - date from-to: date_0, date_1
+     - time from-to: time_0, time_1
+     - amount from-to: amount_0, amount_1
     >> get expense list
-    >> if username belongs to admin, return all expenses (or filtered)
+    >> if username belongs to admin, return all expenses
 
  DELETE/POST users/<username>/expenses
     >> bulk delete
