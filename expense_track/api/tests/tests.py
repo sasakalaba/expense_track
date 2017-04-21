@@ -540,12 +540,6 @@ class ExpensesTest(BaseTestCase):
             url_kwargs=self.user2_url_kwargs,
         )
 
-    def test_bulk_delete(self):
-        """
-        Expense bulk delete test.
-        """
-        pass
-
 
 class UsersTest(BaseTestCase):
     def setUp(self):

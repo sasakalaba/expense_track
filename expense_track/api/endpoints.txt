@@ -26,9 +26,6 @@ USERS
  GET /users
     >> get user list
 
- DELETE/POST /users
-    >> bulk delete
-
  POST /users
     ** params (username, email, password, confirm_password, user_type)
     >> create new user
@@ -57,9 +54,6 @@ EXPENSES
      - amount from-to: amount_0, amount_1
     >> get expense list
     >> if username belongs to admin, return all expenses
-
- DELETE/POST users/<username>/expenses
-    >> bulk delete
 
  POST users/<username>/expenses
     >> create new expense
