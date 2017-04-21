@@ -24,8 +24,3 @@ class Expense(models.Model):
     description = models.CharField(max_length=1024, null=True, blank=True, default='')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     comment = models.CharField(max_length=1024, null=True, blank=True, default='')
-
-    def save(self, *args, **kwargs):
-        if self.user.is_staff:
-            return None
-        super(Expense, self).save(*args, **kwargs)
