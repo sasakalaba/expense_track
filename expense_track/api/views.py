@@ -3,7 +3,7 @@ from rest_framework import status, viewsets, permissions
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from expense_trackapp.models import Expense
-from .permissions import IsOwnerOrReadOnly
+from .permissions import IsOwnerOrAdmin
 from .filters import ExpenseFilter
 from .serializers import (
     UserSerializer,
@@ -26,7 +26,7 @@ class AccountViewSet(viewsets.ModelViewSet):
 
 class ExpenseViewSet(viewsets.ModelViewSet):
     serializer_class = ExpenseSerializer
-    permission_classes = [IsOwnerOrReadOnly, ]
+    permission_classes = [IsOwnerOrAdmin, ]
     lookup_fields = ['username', 'pk']
     filter_class = ExpenseFilter
 

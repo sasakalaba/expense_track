@@ -1,5 +1,5 @@
 from .base import BaseTestCase
-from ..permissions import IsOwnerOrReadOnly
+from ..permissions import IsOwnerOrAdmin
 from ..views import ExpenseViewSet
 from django.contrib.auth.models import User
 from mock import MagicMock, call
@@ -12,29 +12,29 @@ class PermissionsTest(BaseTestCase):
         self.user.save()
         self.request = MagicMock(user=self.user)
         self.view = MagicMock(kwargs={'username': 'foobar'})
-        self.is_owner_or_read_only = IsOwnerOrReadOnly()
+        self.is_owner_or_admin = IsOwnerOrAdmin()
 
-    def test_is_owner_or_read_only_has_permission(self):
+    def test_is_owner_or_admin_has_permission(self):
         """
         has_permission test.
         """
 
         # Superuser check.
         self.assertTrue(
-            self.is_owner_or_read_only.has_permission(self.request, self.view))
+            self.is_owner_or_admin.has_permission(self.request, self.view))
 
         # Allowed user check.
         self.user.is_superuser = False
         self.user.save()
         self.assertTrue(
-            self.is_owner_or_read_only.has_permission(self.request, self.view))
+            self.is_owner_or_admin.has_permission(self.request, self.view))
 
         # Denied permission check.
         self.view.kwargs['username'] = 'wrong_user'
         self.assertFalse(
-            self.is_owner_or_read_only.has_permission(self.request, self.view))
+            self.is_owner_or_admin.has_permission(self.request, self.view))
 
-    def test_is_owner_or_read_only_has_object_permission(self):
+    def test_is_owner_or_admin_has_object_permission(self):
         """
         has_object_permission test.
         """
@@ -42,20 +42,20 @@ class PermissionsTest(BaseTestCase):
         obj = MagicMock(user=self.user)
 
         # Superuser check.
-        self.assertTrue(self.is_owner_or_read_only.has_object_permission(
+        self.assertTrue(self.is_owner_or_admin.has_object_permission(
             self.request, self.view, obj))
 
         # Allowed user check.
         self.user.is_superuser = False
         self.user.save()
-        self.assertTrue(self.is_owner_or_read_only.has_object_permission(
+        self.assertTrue(self.is_owner_or_admin.has_object_permission(
             self.request, self.view, obj))
 
         # Denied permission check.
         obj.user = User.objects.create_user(
             username='foobar3', email='foo@bar3.com', password='mypassword'
         )
-        self.assertFalse(self.is_owner_or_read_only.has_object_permission(
+        self.assertFalse(self.is_owner_or_admin.has_object_permission(
             self.request, self.view, obj))
 
 

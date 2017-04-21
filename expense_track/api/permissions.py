@@ -1,7 +1,7 @@
 from rest_framework import permissions
 
 
-class IsOwnerOrReadOnly(permissions.BasePermission):
+class IsOwnerOrAdmin(permissions.BasePermission):
     """
     Only object user or admin can CRUD.
     """
