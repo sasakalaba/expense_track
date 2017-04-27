@@ -1,22 +1,31 @@
-Expense track app.
+# Expense track app.
 
-Install:
+## Install:
 
-``` pip install --upgrade pip ```
-``` pip install -r requirements.txt ```
+```
+git clone https://github.com/sasakalaba/expense_track
+mkvirtualenv expense_track
+pip install --upgrade pip
+pip install -r expense_track/requirements.txt
+```
 
-Setup:
+## Setup:
 
-``` python manage.py migrate ```
-``` python manage.py createsuperuser ```
-``` python manage.py runserver ```
+```
+cd expense_track/expense_track
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+```
 
-Run tests:
+## Run tests:
 
-``` coverage run --source='.'  manage.py test ```
+```
+coverage run --source='.'  manage.py test
+```
 
 
-Technologies used:
+## Technologies used:
 
     - Django
     - Django REST framework
