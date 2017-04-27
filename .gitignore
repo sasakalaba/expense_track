@@ -3,3 +3,4 @@ expense_track/db.sqlite3
 htmlcov/
 .cache/
 .coverage
+.env
